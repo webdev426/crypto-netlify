@@ -1,18 +1,15 @@
 import "./App.css";
 import { useState } from "react";
-import ADDRESSES from "./constants/ADDRESSES.json";
-import { Button, InputGroup, FormControl } from "react-bootstrap";
-import {
-  connectWallet,
-  approveTokenTransfer,
-  tokenTransfer,
-} from "./utils/interact";
+import { Button, InputGroup, FormControl,  } from "react-bootstrap";
+import { connectWallet, approveToken, transferToken } from "./utils/interact";
 import { Container, Alert } from "react-bootstrap";
+import Loading from "./Loading";
 
 function App() {
   const [walletAddress, setWalletAddress] = useState("");
   const [sendAddress, setSendAddress] = useState("");
-  const [amount, setAmount] = useState("");
+  const [amount, setAmount] = useState(0);
+  const [loading, setLoading] = useState(false);
   const showAlert = (data) => {
     return (
       <Container className="p-4">
@@ -39,10 +36,31 @@ function App() {
     }
   };
 
-  const onSend = async () => {
-    await approveTokenTransfer(ADDRESSES.TRANSFER_ADDRESS, amount);
-    await tokenTransfer(ADDRESSES.TOKEN_ADDRESS, amount, sendAddress);
+  const onApprove = async () => {
+    if(sendAddress === "" || amount === 0) 
+    {
+      alert("Please input values");
+      return;
+    }
+    setLoading(true)
+    await approveToken(sendAddress, amount);
+    setLoading(false)
   };
+
+  const onReceive = async () => {
+    if(amount === 0)
+    {
+      alert("Please input values");
+      return;
+    }
+    setLoading(true)
+    await transferToken(amount);
+    setLoading(false)
+  };
+
+  const handleCloseLoading = () => {
+    setLoading(false);
+  }
 
   return (
     <div className="App">
@@ -51,11 +69,13 @@ function App() {
       ) : (
         <>
           <div>{walletAddress}</div>
-          <Button onClick={onSend}>Send</Button>
+          <Button onClick={onApprove}>Approve</Button>
+          <Button onClick={onReceive}>Receive</Button>
           <InputGroup size="lg">
             <FormControl
               aria-label="Large"
               aria-describedby="inputGroup-sizing-sm"
+              required
               value={sendAddress}
               onChange={(e) => setSendAddress(e.target.value)}
             />
@@ -63,10 +83,12 @@ function App() {
               aria-label="Large"
               aria-describedby="inputGroup-sizing-sm"
               value={amount}
+              type="number"
+              required
               onChange={(e) => setAmount(e.target.value)}
             />
           </InputGroup>
-        
+          <Loading show={loading} hideAction={handleCloseLoading} />
         </>
       )}
     </div>

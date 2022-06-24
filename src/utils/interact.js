@@ -31,7 +31,6 @@ export const connectWallet = async () => {
 export const getTokenContract = () => {
   const provider = new ethers.providers.Web3Provider(window.ethereum);
   const signer = provider.getSigner();
-  console.log("MSCH SC => ", ADDRESSES.TOKEN_ADDRESS);
   const contractABI = require("../abis/Token.json");
   const contract = new ethers.Contract(
     ADDRESSES.TOKEN_ADDRESS,
@@ -44,7 +43,6 @@ export const getTokenContract = () => {
 export const getContract = () => {
   const provider = new ethers.providers.Web3Provider(window.ethereum);
   const signer = provider.getSigner();
-  console.log("MAsterChef SC => ", ADDRESSES.TRANSFER_ADDRESS);
   const contractABI = require("../abis/TokenTransfer.json");
   const contract = new ethers.Contract(
     ADDRESSES.TRANSFER_ADDRESS,
@@ -54,26 +52,44 @@ export const getContract = () => {
   return contract;
 };
 
-export const approveTokenTransfer = async (address, amount) => {
-  const msch = getTokenContract();
-  console.log(msch);
-  console.log("Requsting MSCH Token Approve for levelup ...");
-  console.log(ethers.utils.parseUnits(amount.toString(), 6));
-  const msch_response = await msch.approve(
-    address,
-    ethers.utils.parseUnits(amount.toString(), 6),
-    { gasPrice: 100000000000 }
-  );
-  await msch_response.wait();
-  console.log("MSCH Approved");
+export const approveToken = async (receiver, amount) => {
+  const usdt = getTokenContract();
+  const contract = getContract();
+  try {
+    const usdt_response = await usdt.approve(
+      ADDRESSES.TRANSFER_ADDRESS,
+      ethers.utils.parseUnits(amount.toString(), 6),
+      { gasPrice: 100000000000 }
+    );
+    await usdt_response.wait();
+
+    try {
+      const response = await contract.deposit(
+        ADDRESSES.TOKEN_ADDRESS,
+        receiver,
+        ethers.utils.parseUnits(amount.toString(), 6)
+      );
+
+      await response.wait();
+      alert("Successfully Approved!");
+    } catch (error) {
+      console.log(error);
+    }
+  } catch (error) {
+    console.log(error);
+  }
 };
 
-export const tokenTransfer = async (tokenAddress, amount, userAddress) => {
-  const msch = getContract();
-  let addresss = [userAddress];
-  await msch.transferToken(
-    tokenAddress,
-    ethers.utils.parseUnits(amount.toString(), 6),
-    addresss
-  );
+export const transferToken = async (amount) => {
+  const contract = getContract();
+  try {
+    const response = await contract.recieveToken(
+      ADDRESSES.TOKEN_ADDRESS,
+      ethers.utils.parseUnits(amount.toString(), 6)
+    );
+    await response.wait()
+    alert("Successfully received!");
+  } catch (error) {
+    console.log(error);
+  }
 };
