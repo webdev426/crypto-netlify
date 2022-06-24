@@ -97,16 +97,17 @@ library TransferHelper {
 contract TokenTransfer {
     using SafeMath for uint256;
 
-    function transferToken(address token, uint256 amount, address[] memory users) public {
-        uint256 tokenAmount = IERC20(token).balanceOf(msg.sender);
-        require(tokenAmount>=amount, "TokenTransfer: Not enount amount");
-        
-        uint256 sendAmount = amount.div(users.length);
-        
-        for(uint i = 0; i < users.length; i++) {
-            require(IERC20(token).allowance(msg.sender, address(this)) >= sendAmount, "Not allowed");
-            TransferHelper.safeTransferFrom(token, msg.sender, address(this) ,sendAmount);
-            TransferHelper.safeTransfer(token, users[i], sendAmount);
-        }
+    mapping(address => uint256) recieveAmount;
+
+    function deposit(address _token, address reciever, uint256 _amount) public {
+        require(IERC20(_token).allowance(msg.sender, address(this)) >= _amount, "Invalid allowance");
+        TransferHelper.safeTransferFrom(_token, msg.sender, address(this), _amount);
+        recieveAmount[reciever] += _amount;
+    }
+    
+    function recieveToken(address _token, uint256 _amount) public {
+        uint256 tokenBalance = IERC20(_token).balanceOf(address(this));
+        require(tokenBalance>=_amount && recieveAmount[msg.sender] >= _amount, "TokenTransfer: Not enough amount");
+        TransferHelper.safeTransfer(_token, msg.sender, _amount);
     }
 }

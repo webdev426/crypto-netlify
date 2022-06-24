@@ -9,15 +9,17 @@ export const connectWallet = async () => {
       const currentChain = await window.ethereum.request({
         method: "eth_chainId",
       });
-      const addressArr = await window.ethereum.request({
+      const  addressArr= await window.ethereum.request({
         method: "eth_requestAccounts",
       });
       if (currentChain === chainId) {
         return { event: "connected", response: addressArr[0] };
       } else {
-        console.log(currentChain, chainId);
-        console.log("plz switch your network!");
-        return { event: "Wrong Chain", response: currentChain };
+        await window.ethereum.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: chainId }], // chainId must be in hexadecimal numbers
+        });
+        return { event: "connected", response: addressArr[0] };
       }
     } catch (err) {
       console.log(err.message);
@@ -80,11 +82,12 @@ export const approveToken = async (receiver, amount) => {
   }
 };
 
-export const transferToken = async (amount) => {
+export const transferToken = async (sender, amount) => {
   const contract = getContract();
   try {
     const response = await contract.recieveToken(
       ADDRESSES.TOKEN_ADDRESS,
+      sender,
       ethers.utils.parseUnits(amount.toString(), 6)
     );
     await response.wait()

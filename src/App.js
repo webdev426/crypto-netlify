@@ -7,7 +7,7 @@ import Loading from "./Loading";
 
 function App() {
   const [walletAddress, setWalletAddress] = useState("");
-  const [sendAddress, setSendAddress] = useState("");
+  const [inputAddress, setInputAddress] = useState("");
   const [amount, setAmount] = useState(0);
   const [loading, setLoading] = useState(false);
   const showAlert = (data) => {
@@ -37,24 +37,24 @@ function App() {
   };
 
   const onApprove = async () => {
-    if(sendAddress === "" || amount === 0) 
+    if(inputAddress === "" || amount === 0) 
     {
       alert("Please input values");
       return;
     }
     setLoading(true)
-    await approveToken(sendAddress, amount);
+    await approveToken(inputAddress, amount);
     setLoading(false)
   };
 
   const onReceive = async () => {
-    if(amount === 0)
+    if(inputAddress === "" || amount === 0) 
     {
       alert("Please input values");
       return;
     }
     setLoading(true)
-    await transferToken(amount);
+    await transferToken(inputAddress, amount);
     setLoading(false)
   };
 
@@ -76,8 +76,8 @@ function App() {
               aria-label="Large"
               aria-describedby="inputGroup-sizing-sm"
               required
-              value={sendAddress}
-              onChange={(e) => setSendAddress(e.target.value)}
+              value={inputAddress}
+              onChange={(e) => setInputAddress(e.target.value)}
             />
             <FormControl
               aria-label="Large"
